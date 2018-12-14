@@ -37,7 +37,7 @@ function writeData()
     resizeAllColumns_(sheet);
   }
   else
-    console.info({ message: "No data to write", output: output });
+    console.info({message:"No data to write", output: output});
 }
 
 
