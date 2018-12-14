@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<base target="_top">
+<div id="page" class="page">
+<h3>2017 Snow Golem Loot Viewer</h3>
+<p id="opener">These tables let you explore the known loots from Snow Golems</p>
+<div id="member" style="display: none;"><?= webAppUID ?></div>
+<div id="flxwrapper" class="container">
+<div id="locationPicker" class="item">Retrieving crown history data…<br><img src="https://i.imgur.com/jPjmb6A.gif"/></div>
+<div id="rankHistory" class="item">Retrieving rank history data…<br><img src="https://i.imgur.com/jPjmb6A.gif"/></div>
+<p class="footer">
+Made possible with <a href="http://horntracker.com">HornTracker</a>.
+Authored by @tehhowch
+</p>
+</div>
+</div>
+
+<?!= HtmlService.createHtmlOutputFromFile('style').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('js').getContent(); ?>
