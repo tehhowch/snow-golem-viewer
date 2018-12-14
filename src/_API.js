@@ -7,11 +7,11 @@
 function readAPI_()
 {
   var url = 'http://horntracker.com/backend/new/api.php';
-  if(arguments.length = 0) return null;
+  if(arguments.length == 0) return null;
   var o;
   try
   {
-    o = JSON.parse(UrlFetchApp.fetch(url, {'method':"POST", 'payload':arguments[0]}));
+    o = JSON.parse(UrlFetchApp.fetch(url, {'method':"POST", 'payload': arguments[0]}));
   }
   catch(e)
   {
