@@ -1,5 +1,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/plain" src="https://raw.githubusercontent.com/mfranzke/datalist-polyfill/5844fe94c9557e19ad9102b43b1db031799d87ae/datalist-polyfill.min.js"></script>
 <script type="text/javascript">
 
 /**
@@ -287,8 +288,10 @@ $(window).resize(function()
 // The resize handler, called at the end of the resize operation.
 $(window).on('resizeEnd', function()
   {
-     lootWrapper.draw();
-     locationWrapper.draw();
+     if(lootWrapper)
+       lootWrapper.draw();
+     if(locationWrapper)
+       locationWrapper.draw();
   }
 );
 
