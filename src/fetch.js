@@ -2,7 +2,7 @@
 var scache = CacheService.getScriptCache();
 var ssid = '1fN6J_d-3DAkuFys5gOY6GhE-7vHQOgtN0RDeop5exSU';
 var dbSheetName = 'db';
-var labels = {"Common":"1. Common", "Valuable":"2. Valuable", "Exceptional":"3. Exceptional", "Hat":"4. Hat"};
+var labels = { "Common": "1. Common", "Valuable": "2. Valuable", "Exceptional": "3. Exceptional", "Hat": "4. Hat" };
 
 
 // Store data to the worksheet.
@@ -12,18 +12,18 @@ function writeData()
   var sheet = ss.getSheetByName(dbSheetName);
   var data = fetchData();
   var output = [];
-  for(var location in data)
+  for (var location in data)
   {
     var locationData = data[location];
-    for(var rarity in locationData)
-      for(var item in locationData[rarity])
+    for (var rarity in locationData)
+      for (var item in locationData[rarity])
       {
         var loot = locationData[rarity][item];
         output.push([location, labels[rarity] || rarity, item, loot.seen, loot.quant, loot.percent * .01, loot.error * .01]);
       }
   }
   // Create (and activate) the desired sheet if it does not exist.
-  if(!sheet)
+  if (!sheet)
   {
     sheet = ss.insertSheet(dbSheetName);
     sheet.appendRow(['Location', 'Slot', 'Item', 'Times Received', 'Quantity Received', 'Chance to Receive (%)', 'Uncertainty (%err)']);
@@ -31,13 +31,13 @@ function writeData()
     resizeAllColumns_(sheet);
   }
   // Write the loot data to the database spreadsheet.
-  if(output.length && output[0].length)
+  if (output.length && output[0].length)
   {
     sheet.getRange(2, 1, output.length, output[0].length).setValues(output);
     resizeAllColumns_(sheet);
   }
   else
-    console.info({message:"No data to write", output: output});
+    console.info({ message: "No data to write", output: output });
 }
 
 
@@ -54,17 +54,17 @@ function fetchData(query)
   var data;
 
   // Attempt to retrieve cached data first.
-  if(query)
+  if (query)
     data = scache.get(query) || [];
   // Return cached data if it existed and parses.
-  if(data && data.length && JSON.parse(data))
+  if (data && data.length && JSON.parse(data))
     return JSON.parse(data);
 
   // Obtain new data.
   var newData = getSnowGolemData_() || [];
-  if(!Object.keys(newData).length)
+  if (!Object.keys(newData).length)
   {
-    console.error({message:'Parse error when obtaining new Golem data', newData: newData});
+    console.error({ message: 'Parse error when obtaining new Golem data', newData: newData });
     return undefined;
   }
 
@@ -74,20 +74,20 @@ function fetchData(query)
     storeData_(newData, 60 * 150);
     storeLootData_(newData, 60 * 150);
   }
-  catch(e)
+  catch (e)
   {
-    console.error({message:'Unable to cache Snow Golem data', "golem data": newData, "error":e})
+    console.error({ message: 'Unable to cache Snow Golem data', "golem data": newData, "error": e })
   }
 
 
   // Return the desired bits.
-  if(query)
+  if (query)
     return fetchData(query);
-  else if(newData['snowman'])
+  else if (newData['snowman'])
     return newData['snowman'];
   else
   {
-    console.error({message:'Unknown object received', newData: newData});
+    console.error({ message: 'Unknown object received', newData: newData });
     return undefined;
   }
 }
@@ -102,20 +102,20 @@ function fetchData(query)
  */
 function storeData_(data, duration)
 {
-  if(!data)
+  if (!data)
     return;
-  if(!duration || duration > 21600)
+  if (!duration || duration > 21600)
     duration = 600;
 
   // Store data for each location separately.
   var locations = Object.keys(data['snowman']) || [];
-  if(!locations.length)
+  if (!locations.length)
     return;
 
   // Build a cache object of all keys, and the results of each key.
-  var cache = {"locations": JSON.stringify(locations)};
-  for(var i = 0; i < locations.length; ++i)
-    cache[locations[i]]=JSON.stringify(data['snowman'][locations[i]]);
+  var cache = { "locations": JSON.stringify(locations) };
+  for (var i = 0; i < locations.length; ++i)
+    cache[locations[i]] = JSON.stringify(data['snowman'][locations[i]]);
 
   scache.putAll(cache, duration);
 }
@@ -130,33 +130,33 @@ function storeData_(data, duration)
  */
 function storeLootData_(data, duration)
 {
-  if(!data || !data['snowman'])
+  if (!data || !data['snowman'])
     return;
-  if(!duration || duration > 21600)
+  if (!duration || duration > 21600)
     duration = 600;
 
   // Process the input data to glean loot, and the locations in which that loot is found.
   console.time('Process Loot');
   var loot = {};
   var lootNames = [];
-  for(var location in data['snowman'])
-    for(var rarity in data['snowman'][location])
-      for(var item in data['snowman'][location][rarity])
+  for (var location in data['snowman'])
+    for (var rarity in data['snowman'][location])
+      for (var item in data['snowman'][location][rarity])
       {
         var itemData = data['snowman'][location][rarity][item];
 
         // Insert new items into the lootNames array.
-        if(lootNames.indexOf(item) < 0)
+        if (lootNames.indexOf(item) < 0)
           lootNames.push(item);
 
         // Create a loot object if not already present.
-        if(Object.keys(loot).indexOf(item) < 0)
-          loot[item] = {'rarity':{}, 'locations':{}};
+        if (Object.keys(loot).indexOf(item) < 0)
+          loot[item] = { 'rarity': {}, 'locations': {} };
         // Create this rarity in the loot object, if not already present.
-        if(Object.keys(loot[item].rarity).indexOf(rarity) < 0)
+        if (Object.keys(loot[item].rarity).indexOf(rarity) < 0)
           loot[item].rarity[rarity] = {};
         // Create this location in the loot object, if not already present.
-        if(Object.keys(loot[item].locations).indexOf(location) < 0)
+        if (Object.keys(loot[item].locations).indexOf(location) < 0)
           loot[item].locations[location] = {};
 
         // Add this loot's item data to its loot object.
@@ -165,9 +165,9 @@ function storeLootData_(data, duration)
       }
 
   // Create a cacheable object from the collected data.
-  var cache = {'lootNames': JSON.stringify(lootNames)};
+  var cache = { 'lootNames': JSON.stringify(lootNames) };
   // Store the locations in which each loot is found.
-  for(var item in loot)
+  for (var item in loot)
     cache[item] = JSON.stringify(loot[item]);
 
   console.timeEnd('Process Loot');
@@ -178,7 +178,7 @@ function storeLootData_(data, duration)
 
 function resizeAllColumns_(sheet)
 {
-  for(var col = 1; col <= sheet.getLastColumn(); ++col)
+  for (var col = 1; col <= sheet.getLastColumn(); ++col)
     sheet.autoResizeColumn(col);
 }
 
@@ -192,5 +192,5 @@ function resizeAllColumns_(sheet)
 function getSnowGolemData_()
 {
   var f = "getSnowmanData";
-  return readAPI_(JSON.stringify({'f':f}));
+  return readAPI_(JSON.stringify({ 'f': f }));
 }

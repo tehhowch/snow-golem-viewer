@@ -1,0 +1,6 @@
+{
+    "javascript.format.placeOpenBraceOnNewLineForFunctions": true,
+    "html.format.endWithNewline": true,
+    "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": true,
+    "javascript.format.placeOpenBraceOnNewLineForControlBlocks": true
+}
