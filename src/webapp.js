@@ -5,9 +5,9 @@
  *                    {parameter={}, contextPath=, contentLength=-1, queryString=null, parameters={[]}}
  * @return {webpage}  Returns a webpage described by assembling the various .html files
  */
-function doGet(e)
-{
-  var pg = HtmlService.createTemplateFromFile('lootPage');
-  console.log('webapp hit', e);
-  return pg.evaluate().setTitle('GWH2017 Snow Golem Loot').setFaviconUrl('https://i.imgur.com/ELxTnT2.gif');
+function doGet(e) {
+//  var pg = HtmlService.createTemplateFromFile('lootPage');
+  return ContentService.createTextOutput("Output");
+//  console.log('webapp hit', e);
+//  return pg.evaluate().setTitle('GWH2017 Snow Golem Loot').setFaviconUrl('https://i.imgur.com/ELxTnT2.gif');
 }
