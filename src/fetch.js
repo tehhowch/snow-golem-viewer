@@ -76,7 +76,7 @@ function fetchData(query)
   }
   catch(e)
   {
-    console.error({ message: 'Unable to cache Snow Golem data', "golem data": newData, "error":e });
+    console.error({message:'Unable to cache Snow Golem data', "golem data": newData, "error":e})
   }
 
 
@@ -87,7 +87,7 @@ function fetchData(query)
     return newData['snowman'];
   else
   {
-    console.error({ message: 'Unknown object received', newData: newData });
+    console.error({message:'Unknown object received', newData: newData});
     return undefined;
   }
 }

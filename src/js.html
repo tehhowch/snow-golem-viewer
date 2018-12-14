@@ -1,6 +1,5 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<script type="text/plain" src="https://raw.githubusercontent.com/mfranzke/datalist-polyfill/5844fe94c9557e19ad9102b43b1db031799d87ae/datalist-polyfill.min.js"></script>
 <script type="text/javascript">
 
 /**
@@ -103,6 +102,7 @@ function getTableData(event)
       isChoice = isValidChoice(String(event.target.value), event.target.list.childNodes);
       break;
     default:
+      console.log(event.type);
   }
   if(isChoice && event.target.name == "loot")
   {
@@ -139,6 +139,13 @@ function makeTableData(json)
   // If passed the loot json, it has two keys: rarities and locations.
   // If passed the location json, it has up to 4 keys, each of which is a rarity.
   var keys = new Set(Object.keys(json));
+  // IE cannot construct from iterable, so add one-by-one.
+  if(!keys || keys.size == 0)
+  {
+    keys = new Set();
+    for(var k in Object.keys(json))
+      keys.add(Object.keys(json)[k]);
+  }
   var isLootTable = keys.has("locations");
   // Since we are making a table, loot's rarity and locations objects offer
   // the same data, just with a different default sort. Ignore the rarity object (for now).
@@ -221,6 +228,7 @@ function dataNotLoadedOK(e)
 {
   console.log(e);
   document.getElementById("Welcome").innerHTML = "<p>An error occurred while fetching data.<br>Please reload the page to try again.</p>";
+  document.getElementById("onOpen").click();
 }
 
 
@@ -234,16 +242,34 @@ function dataLoadedOK(input)
 {
   input.data.sort();
   document.getElementById(input.id).innerHTML = array2DataList(input.data);
+  // Remove the loading text once the options have loaded.
+  try
+  {
+    document.getElementById(input.id + 'Loading').remove();
+  }
+  catch(e)
+  {
+    // Remove is not supported in IE or Opera Mini, so clear its HTML instead.
+    document.getElementById(input.id + 'Loading').innerHTML = '';
+  }
 }
 
 
 
 // Compares a value with a datalist's nodes to determine if it matches one exactly.
-function isValidChoice(value, nodes)
+function isValidChoice(value, nodelist)
 {
   var set = new Set();
-  nodes.forEach(function(node){ set.add(node.value) });
-  
+  try
+  {
+    nodelist.forEach(function(node){ set.add(node.value) });
+  }
+  catch(e)
+  {
+    // Internet Explorer has no support for nodeList.forEach, so go through old-school.
+    for(let i = 0; i < nodelist.length; ++i)
+      set.add(nodelist.item(i).value);
+  }
   return set.has(value);
 }
 

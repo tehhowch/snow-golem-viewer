@@ -14,11 +14,13 @@
     <div id="locationView" class="tabcontent">
       <input list="locationList" id="locationPicker" name="location" type="search" placeholder="Select or type..." class="input" aria-label="Search locations"/>
       <datalist id="locationList" class="table"></datalist>
+      <div id="locationListLoading" class="item">Retrieving known locations…<br><img src="https://i.imgur.com/jPjmb6A.gif"/></div>
       <div id="location" class="table">Retrieving loot for location…<br><img src="https://i.imgur.com/jPjmb6A.gif"/></div>
     </div>
     <div id="lootView" class="tabcontent">
       <input list="lootList" id="lootPicker" name="loot" type="search" placeholder="Select or type..." class="input" aria-label="Search loots"/>
       <datalist id="lootList" class="table"></datalist>
+      <div id="lootListLoading" class="item">Retrieving known items…<br><img src="https://i.imgur.com/jPjmb6A.gif"/></div>
       <div id="loot" class="table">Retrieving locations for loot…<br><img src="https://i.imgur.com/jPjmb6A.gif"/></div>
     </div>
   </div>
