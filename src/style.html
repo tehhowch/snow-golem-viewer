@@ -27,11 +27,17 @@
 .tabcontent {
   padding: 10px;
   display: none;
+  min-height: 10vh;
 }
 .table {
   display: none;
   table-layout: fixed;
   border-collapse: collapse;
+}
+.input {
+  min-width: 50vw;
+  text-align: left;
+  font-size: 16px;
 }
 tbody tr:nth-child(even) {
   background-color: #ddd;
@@ -41,20 +47,26 @@ th {
 }
 .container {
   display: flex;
+  flex: 1;
   flex-direction: column;
   justify-content: space-between;
-  min-width: 100%;
+  min-height: 75vh;
+  width: 100%;
 }
 .item {
   flex: 1 0 auto;
   width: 100%;
   margin: auto;
 }
+.footer {
+  margin-top: auto;
+  flex-shrink: 0;
+  padding-top: 20px;
+}
 .page {
   display: flex;
   flex-direction: column;
-  /*position: absolute;*/
   height: 99%;
-  min-width: 98%;
+  width: 98vw;
 }
 </style>

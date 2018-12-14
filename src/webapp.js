@@ -62,3 +62,16 @@ function getLootList(tryAgain)
   else
     throw new Error('Unable to read list of loot.');
 }
+
+/**
+ * itemTracker
+ */
+function itemTracker(selection)
+{
+  try{SpreadsheetApp.openById(ssid).getSheetByName('tracker').appendRow([
+    new Date(),
+    selection.type,
+    selection.value
+  ]);}
+  catch(e){}
+}

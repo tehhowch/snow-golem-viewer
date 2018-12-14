@@ -2,14 +2,6 @@
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script type="text/javascript">
 
-/*******************************
- * Globals. Oops.
- *******************************/
-var rarityLabels = {"Common":"1. Common", "Valuable":"2. Valuable", "Exceptional":"3. Exceptional", "Hat":"4. Hat"};
-/*******************************
- * End Globals
- *******************************/
-
 /**
  * selectTab           function to select the tab and obtain the relevant Golem data
  * @param event        The click event that called this function
@@ -101,7 +93,6 @@ function showLocationTable(input)
 function getTableData(event)
 {
   var isChoice = false;
-  console.log(event.type);
   switch(event.type)
   {
     case "deleteContentBackward":
@@ -111,19 +102,20 @@ function getTableData(event)
       isChoice = isValidChoice(String(event.target.value), event.target.list.childNodes);
       break;
     default:
-      console.log(event.type);
   }
   if(isChoice && event.target.name == "loot")
   {
     google.script.run.withSuccessHandler(showLootTable)
                      .withFailureHandler(hideAllTables)
                      .fetchData(event.target.value);
+    google.script.run.itemTracker({type:'loot', value: String(event.target.value)});
   }
   else if(isChoice && event.target.name == "location")
   {
     google.script.run.withSuccessHandler(showLocationTable)
                      .withFailureHandler(hideAllTables)
                      .fetchData(event.target.value);
+    google.script.run.itemTracker({type:'location', value: String(event.target.value)});
   }
   else if(isChoice)
     console.log('Matched valid choice but unable to handle target name.');
@@ -168,6 +160,8 @@ function makeTableData(json)
   result.addColumn({type: 'number', label: 'Uncertainty (%)'});
   
   // i = Location or Quality.
+  var rarityLabels = {"Common":"1. Common", "Valuable":"2. Valuable",
+                      "Exceptional":"3. Exceptional", "Hat":"4. Hat"};
   for(var i in data)
     // j = Quality or Item.
     for(var j in data[i])
