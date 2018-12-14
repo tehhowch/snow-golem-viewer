@@ -7,7 +7,11 @@
  */
 function doGet(e) {
 //  var pg = HtmlService.createTemplateFromFile('lootPage');
-  return ContentService.createTextOutput("Output");
-//  console.log('webapp hit', e);
+  return ContentService.createTextOutput("This was done via GET request.");
+  console.log('webapp hit', e);
 //  return pg.evaluate().setTitle('GWH2017 Snow Golem Loot').setFaviconUrl('https://i.imgur.com/ELxTnT2.gif');
+}
+function doPost(e) {
+  console.log('webapp doPost', e);
+  return ContentService.createTextOutput("This was done via POST request.");
 }
