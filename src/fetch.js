@@ -32,13 +32,13 @@ function writeData()
     sheet = ss.insertSheet(dbSheetName);
     sheet.appendRow(['Location', 'Slot', 'Item', 'Times Received', 'Quantity Received', 'Chance to Receive (%)', 'Uncertainty (%err)']);
     sheet.getDataRange().setFontWeight('bold').setHorizontalAlignment('center').setVerticalAlignment('middle');
-    resizeAllColumns(sheet);
+    resizeAllColumns_(sheet);
   }
   // Write the loot data to the database spreadsheet.
   if(output.length && output[0].length)
   {
     sheet.getRange(2, 1, output.length, output[0].length).setValues(output);
-    resizeAllColumns(sheet);
+    resizeAllColumns_(sheet);
   }
   else
     console.info("No data to write", output);
@@ -122,7 +122,7 @@ function storeData_(data, duration)
 
 
 
-function resizeAllColumns(sheet)
+function resizeAllColumns_(sheet)
 {
   for(var col = 1; col <= sheet.getLastColumn(); ++col)
     sheet.autoResizeColumn(col);
@@ -138,5 +138,5 @@ function resizeAllColumns(sheet)
 function getSnowGolemData_()
 {
   var f = "getSnowmanData";
-  return readAPI_(JSON.stringify({'f': f}));
+  return readAPI_(JSON.stringify({'f':f}));
 }
