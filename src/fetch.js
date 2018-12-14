@@ -68,11 +68,11 @@ function fetchData(query)
     return undefined;
   }
 
-  // Cache this object for 15 minutes.
+  // Cache this object for 150 minutes.
   try
   {
-    storeData_(newData, 60 * 15);
-    storeLootData_(newData, 60 * 15);
+    storeData_(newData, 60 * 150);
+    storeLootData_(newData, 60 * 150);
   }
   catch(e)
   {
