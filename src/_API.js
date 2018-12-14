@@ -16,7 +16,7 @@ function readAPI_()
   catch(e)
   {
     // Perform the query twice, after waiting a bit (e.g. allow for Horntracker load issues).
-    console.warn('First query failed. Attempting again after 5s', e);
+    console.warn({message:'First query failed. Attempting again after 5s', error: e});
     Utilities.sleep(5000);
     try
     {
@@ -24,7 +24,7 @@ function readAPI_()
     }
     catch(e)
     {
-      console.error("Both queries failed.", e);
+      console.error({message:"Both queries failed.", error: e});
       return null;
     }
   }

@@ -2,7 +2,7 @@
 var scache = CacheService.getScriptCache();
 var ssid = '1fN6J_d-3DAkuFys5gOY6GhE-7vHQOgtN0RDeop5exSU';
 var dbSheetName = 'db';
-var knownLocations;
+var labels = {"Common":"1. Common", "Valuable":"2. Valuable", "Exceptional":"3. Exceptional", "Hat":"4. Hat"};
 
 
 // Store data to the worksheet.
@@ -15,16 +15,12 @@ function writeData()
   for(var location in data)
   {
     var locationData = data[location];
-    var i = 0;
     for(var rarity in locationData)
-    {
-      ++i;
       for(var item in locationData[rarity])
       {
         var loot = locationData[rarity][item];
-        output.push([location, i + ". " + rarity, item, loot.seen, loot.quant, loot.percent * .01, loot.error * .01]);
+        output.push([location, labels[rarity] || rarity, item, loot.seen, loot.quant, loot.percent * .01, loot.error * .01]);
       }
-    }
   }
   // Create (and activate) the desired sheet if it does not exist.
   if(!sheet)
@@ -41,7 +37,7 @@ function writeData()
     resizeAllColumns_(sheet);
   }
   else
-    console.info("No data to write", output);
+    console.info({ message: "No data to write", output: output });
 }
 
 
@@ -49,45 +45,49 @@ function writeData()
  * fetchData                   Function which handles storing & retrieving Snow Golem data from HornTracker.
  *                               If cached data exists, it is used to avoid requerying HornTracker,
  *                               otherwise a new query is performed and the results are cached by location.
- * @param String location      The desired hunting location to which a Snow Golem can be dispatched.
- * @return Object              An object, containing either Golem Loot associated with the given location
- *                             (if a location was specified), or each location and its Golem Loot object.
+ * @param String query         The desired cached item to return data for (a location or loot name).
+ * @return Object              An object, containing either Golem Loot associated with the given query
+ *                             (if a query was specified), or each location and its Golem Loot object.
  */
-function fetchData(location)
+function fetchData(query)
 {
   var data;
 
   // Attempt to retrieve cached data first.
-  if(location)
-    data = scache.get(location);
+  if(query)
+    data = scache.get(query) || [];
   // Return cached data if it existed and parses.
-  if(data && JSON.parse(data))
+  if(data && data.length && JSON.parse(data))
     return JSON.parse(data);
 
-  // Need to obtain new data, cache it, and return the desired location (or everything).
+  // Obtain new data.
   var newData = getSnowGolemData_() || [];
-  if(!newData)
+  if(!Object.keys(newData).length)
   {
-    console.error('Parse error when obtaining new Golem data', newData);
+    console.error({message:'Parse error when obtaining new Golem data', newData: newData});
     return undefined;
   }
-  // Cache this object for an hour.
+
+  // Cache this object for 15 minutes.
   try
   {
-    storeData_(newData, 3600);
+    storeData_(newData, 60 * 15);
+    storeLootData_(newData, 60 * 15);
   }
   catch(e)
   {
-    console.error('Unable to cache Snow Golem data', { "golem data": newData, "error": e });
+    console.error({ message: 'Unable to cache Snow Golem data', "golem data": newData, "error":e });
   }
+
+
   // Return the desired bits.
-  if(location)
-    return fetchData(location);
+  if(query)
+    return fetchData(query);
   else if(newData['snowman'])
     return newData['snowman'];
   else
   {
-    console.error('Unknown object received', newData);
+    console.error({ message: 'Unknown object received', newData: newData });
     return undefined;
   }
 }
@@ -112,13 +112,67 @@ function storeData_(data, duration)
   if(!locations.length)
     return;
 
-  var cache = {};
+  // Build a cache object of all keys, and the results of each key.
+  var cache = {"locations": JSON.stringify(locations)};
   for(var i = 0; i < locations.length; ++i)
     cache[locations[i]]=JSON.stringify(data['snowman'][locations[i]]);
 
   scache.putAll(cache, duration);
 }
 
+
+
+/**
+ * storeLootData_              Function to dissect the snowman loot into usable bits, then cache them.
+ *
+ * @param Object data          A JSON object of the type returned by getSnowGolemData_() (i.e. has a 'snowman' property).
+ * @param Integer duration     A number indicating the number of seconds this data should be cached (default 10 minutes).
+ */
+function storeLootData_(data, duration)
+{
+  if(!data || !data['snowman'])
+    return;
+  if(!duration || duration > 21600)
+    duration = 600;
+
+  // Process the input data to glean loot, and the locations in which that loot is found.
+  console.time('Process Loot');
+  var loot = {};
+  var lootNames = [];
+  for(var location in data['snowman'])
+    for(var rarity in data['snowman'][location])
+      for(var item in data['snowman'][location][rarity])
+      {
+        var itemData = data['snowman'][location][rarity][item];
+
+        // Insert new items into the lootNames array.
+        if(lootNames.indexOf(item) < 0)
+          lootNames.push(item);
+
+        // Create a loot object if not already present.
+        if(Object.keys(loot).indexOf(item) < 0)
+          loot[item] = {'rarity':{}, 'locations':{}};
+        // Create this rarity in the loot object, if not already present.
+        if(Object.keys(loot[item].rarity).indexOf(rarity) < 0)
+          loot[item].rarity[rarity] = {};
+        // Create this location in the loot object, if not already present.
+        if(Object.keys(loot[item].locations).indexOf(location) < 0)
+          loot[item].locations[location] = {};
+
+        // Add this loot's item data to its loot object.
+        loot[item].locations[location][rarity] = itemData;
+        loot[item].rarity[rarity][location] = itemData;
+      }
+
+  // Create a cacheable object from the collected data.
+  var cache = {'lootNames': JSON.stringify(lootNames)};
+  // Store the locations in which each loot is found.
+  for(var item in loot)
+    cache[item] = JSON.stringify(loot[item]);
+
+  console.timeEnd('Process Loot');
+  scache.putAll(cache, duration);
+}
 
 
 

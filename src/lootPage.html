@@ -2,12 +2,29 @@
 <base target="_top">
 <div id="page" class="page">
   <h3>2017 Snow Golem Loot Viewer</h3>
-  <p id="opener">These tables let you explore the known loots from Snow Golems</p>
-  <div id="flxwrapper" class="container">
-    <div id="locationPicker" class="item">Retrieving crown history data…<br><img src="https://i.imgur.com/jPjmb6A.gif"/></div>
-    <div id="rankHistory" class="item">Retrieving rank history data…<br><img src="https://i.imgur.com/jPjmb6A.gif"/></div>
-    <p class="footer">Made possible with <a href="http://horntracker.com">HornTracker</a>.<br>Authored by @tehhowch</p>
+  <div id="tabs" class="tab">
+    <button class="tablinks" onclick="selectTab(event, 'Welcome')" id="onOpen">Welcome!</button>
+    <button class="tablinks" onclick="selectTab(event, 'locationView')">View by Location</button>
+    <button class="tablinks" onclick="selectTab(event, 'lootView')">View by Loot</button>
   </div>
+  <div id="content" class="container">
+    <div id="Welcome" class="tabcontent">
+      <p>These tables let you explore the known loots from Snow Golems.<br>Pick either option to begin.</p>
+    </div>
+    <div id="locationView" class="tabcontent">
+      <label>Select a location: 
+      <input list="locationList" id="locationPicker" name="location" type="search" placeholder="Select or type..."/></label>
+      <datalist id="locationList" class="table"></datalist>
+      <div id="location" class="table">Retrieving loot for location…<br><img src="https://i.imgur.com/jPjmb6A.gif"/></div>
+    </div>
+    <div id="lootView" class="tabcontent">
+      <label>Select a loot: 
+      <input list="lootList" id="lootPicker" name="loot" type="search" placeholder="Select or type..."/></label>
+      <datalist id="lootList" class="table"></datalist>
+      <div id="loot" class="table">Retrieving locations for loot…<br><img src="https://i.imgur.com/jPjmb6A.gif"/></div>
+    </div>
+  </div>
+  <footer class="footer">Made possible with <a href="http://horntracker.com">HornTracker</a>.<br>Authored by @tehhowch</footer>
 </div>
 <?!= HtmlService.createHtmlOutputFromFile('style').getContent(); ?>
 <?!= HtmlService.createHtmlOutputFromFile('js').getContent(); ?>

@@ -1,4 +1,301 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script type="text/javascript">
+
+/*******************************
+ * Globals. Oops.
+ *******************************/
+var rarityLabels = {"Common":"1. Common", "Valuable":"2. Valuable", "Exceptional":"3. Exceptional", "Hat":"4. Hat"};
+/*******************************
+ * End Globals
+ *******************************/
+
+/**
+ * selectTab           function to select the tab and obtain the relevant Golem data
+ * @param event        The click event that called this function
+ * @param tabName      The name of the tab that should be displayed
+ */
+function selectTab(event, tabName)
+{
+  // Hide all tabs.
+  var tabcontent = document.getElementsByClassName("tabcontent");
+  for(var i = 0; i < tabcontent.length; ++i)
+    tabcontent[i].style.display = "none";
+  
+  // Deactivate the tab lists.
+  var tablinks = document.getElementsByClassName("tablinks");
+  for(var i = 0; i < tablinks.length; ++i)
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  
+  // Activate the desired tab and update its tab status.
+  document.getElementById(tabName).style.display = "block";
+  event.currentTarget.className += " active";
+  
+  // Autofocus the tab's list input element.
+  if(tabName == 'Welcome')
+    return;
+  document.getElementById(tabName.slice(0, -4) + "Picker").focus();
+}
+
+
+
+/**
+ * hideAllTables         Function to hide all tables, called after if an error occurs while fetching
+ *                       data for the client.
+ * @param String error   The error message generated.
+ */
+function hideAllTables(error)
+{
+  if(error)
+  {
+    console.log(error);
+    // Hide all tables.
+    var tables = document.getElementsByClassName("table");
+    for(var i = 0; i < tables.length; ++i)
+      tables[i].style.display = "none";
+  }
+}
+
+var lootWrapper, locationWrapper;    
+function showLootTable(input)
+{
+  // Ensure the desired table is displayed immediately (i.e. loading GIF).
+  document.getElementById('loot').style.display = "block";
+
+  var td = makeTableData(input);
+  // Sort by item frequency, then by slot type.
+  td.sort([{column: 4, desc: true}, {column: 1}]);
+  lootWrapper = new google.visualization.ChartWrapper({
+    containerId: 'loot',
+    chartType:'Table',
+    dataTable:td,
+  });
+  
+  lootWrapper.draw();
+}
+function showLocationTable(input)
+{
+  // Ensure the desired table is displayed immediately (i.e. loading GIF).
+  document.getElementById('location').style.display = "block";
+
+  var td = makeTableData(input);
+  // Sort by the slot type, then the item frequency.
+  td.sort([{column: 0}, {column: 4, desc: true}]);
+  locationWrapper = new google.visualization.ChartWrapper({
+    containerId: 'location',
+    chartType:'Table',
+    dataTable:td,
+  });
+  
+  locationWrapper.draw();
+}
+
+
+
+/**
+ *  getTableData              Event handler that responds to user input (via typing or option selection)
+ *                            of either input control. Checks if the given value is a valid option for
+ *                            which data will exist, and if so, fires an async call to make the table.
+ * @param Object event        The Event which activated this handler
+ */
+function getTableData(event)
+{
+  var isChoice = false;
+  console.log(event.type);
+  switch(event.type)
+  {
+    case "deleteContentBackward":
+    case "deleteContentForward":
+    case "insertText":
+    case "input":
+      isChoice = isValidChoice(String(event.target.value), event.target.list.childNodes);
+      break;
+    default:
+      console.log(event.type);
+  }
+  if(isChoice && event.target.name == "loot")
+  {
+    google.script.run.withSuccessHandler(showLootTable)
+                     .withFailureHandler(hideAllTables)
+                     .fetchData(event.target.value);
+  }
+  else if(isChoice && event.target.name == "location")
+  {
+    google.script.run.withSuccessHandler(showLocationTable)
+                     .withFailureHandler(hideAllTables)
+                     .fetchData(event.target.value);
+  }
+  else if(isChoice)
+    console.log('Matched valid choice but unable to handle target name.');
+
+  // Defocus the picker after choosing a valid option.
+  if(isChoice)
+    event.target.blur();
+}
+
+
+
+/**
+ * makeTableData              function that converts input JSON objects into the DataTable class
+ *                            used by google charts
+ * @param Object json         A JSON formatted object with keys [locations, rarities] or [Common, ... Hat]
+ * @return DataTable          A DataTable object suitable for loading into a TableChart visualization.
+ */
+function makeTableData(json)
+{
+  // If passed the loot json, it has two keys: rarities and locations.
+  // If passed the location json, it has up to 4 keys, each of which is a rarity.
+  var keys = new Set(Object.keys(json));
+  var isLootTable = keys.has("locations");
+  // Since we are making a table, loot's rarity and locations objects offer
+  // the same data, just with a different default sort. Ignore the rarity object (for now).
+  var data = isLootTable ? json.locations : json;
+  var result = new google.visualization.DataTable();
+  if(isLootTable)
+  {
+    result.addColumn('string', 'Location');
+    result.addColumn('string', 'Quality');
+  }
+  else
+  {
+    result.addColumn('string', 'Quality');
+    result.addColumn('string', 'Item');
+  }
+  // TODO: Specifying a pattern:'string' doesn't actually work (e.g. to add a % after the % values).
+  result.addColumn({type: 'number', label: 'Amount', pattern: '#,##0'});
+  result.addColumn({type: 'number', label: 'Times Seen', pattern: '#,##0'});
+  result.addColumn({type: 'number', label: 'Chance (%)'});
+  result.addColumn({type: 'number', label: 'Uncertainty (%)'});
+  
+  // i = Location or Quality.
+  for(var i in data)
+    // j = Quality or Item.
+    for(var j in data[i])
+    {
+      var item = data[i][j];
+      // Attempt to coerce a numerical sort to the rarity categories.
+      result.addRow([rarityLabels[i] ? {v: rarityLabels[i], f: i} : i,
+                     rarityLabels[j] ? {v: rarityLabels[j], f: j} : j,
+                     item.quant,
+                     item.seen,
+                     item.percent * 1,
+                     item.error * 1]);
+    }
+  
+  return result;
+}
+
+
+/**
+ * parseLoot                 function that parses the loot JSON into a DataTable
+ * @param Object json        A JSON-formatted object with keys location and rarities, that allow the user
+ *                           to easily view both the rarities this item is found at 
+ */
+
+// Use Google Charts to build a TableChart with the data, to offload the sorting task.
+google.charts.load('current', {packages:['table']});
+google.charts.setOnLoadCallback(function()
+  {
+    // Async loading of location and loot lists (from cache, or from HornTracker.
+    google.script.run.withSuccessHandler(dataLoadedOK)
+                     .withFailureHandler(dataNotLoadedOK)
+                     .getLocationsList();
+    
+    google.script.run.withSuccessHandler(dataLoadedOK)
+                     .withFailureHandler(dataNotLoadedOK)
+                     .getLootList();
+    
+    // Open the "Welcome" tab by default.
+    document.getElementById("onOpen").click();
+  }
+);
+// Attach event handlers to the locationPicker and lootPicker input controls.
+// "input" fires for selection events and the user typing. The input controls
+// have type = search, so that the user can easily clear their text filter to
+// access the full range of options.
+document.getElementById('lootPicker').addEventListener("input", getTableData, true);
+document.getElementById('locationPicker').addEventListener("input", getTableData, true);
+// If the user selects the picker input controls, use a handler to activate their "select" method
+// and thus make it simple to remove all text in the control.
+document.getElementById('lootPicker').addEventListener("focus", doSelectText, true);
+document.getElementById('locationPicker').addEventListener("focus", doSelectText, true);
+
+
+// Error handler, if loads fail.
+function dataNotLoadedOK(e)
+{
+  console.log(e);
+  document.getElementById("Welcome").innerHTML = "<p>An error occurred while fetching data.<br>Please reload the page to try again.</p>";
+}
+
+
+
+/**
+ *  dataLoadedOK                 Fills the target datalist with the given data, to provide
+ *                               dynamically filled options to the loot and location pickers.
+ * @param Object input           An object containing both the DOM id and a String[] of options.
+ */
+function dataLoadedOK(input)
+{
+  input.data.sort();
+  document.getElementById(input.id).innerHTML = array2DataList(input.data);
+}
+
+
+
+// Compares a value with a datalist's nodes to determine if it matches one exactly.
+function isValidChoice(value, nodes)
+{
+  var set = new Set();
+  nodes.forEach(function(node){ set.add(node.value) });
+  
+  return set.has(value);
+}
+
+
+
+/**
+ * array2DataList              function to convert String[] into an HTML datalist.
+ *
+ * @param String[] options     The array of items to be made into options.
+ * @return String              A string suitable to become InnerHTML (e.g. the datalist).
+ */
+function array2DataList(options)
+{
+  if(!options.length)
+    return "";
+  
+  var dataList = String();
+  for(var i = 0; i < options.length; ++i)
+    dataList += '<option value="' + options[i] + '"/>';
+  
+  return dataList;
+}
+
+
+
+// Select all the text inside the event target (to make filtering a bit nicer).
+function doSelectText(event)
+{
+  event.target.select();
+}
+
+// Handle page resizing.
+$(window).resize(function()
+  {
+    if(this.resizeTO)
+      clearTimeout(this.resizeTO);
+    this.resizeTO = setTimeout(
+      function(){ $(this).trigger('resizeEnd');},
+      500);
+  }
+);
+// The resize handler, called at the end of the resize operation.
+$(window).on('resizeEnd', function()
+  {
+     lootWrapper.draw();
+     locationWrapper.draw();
+  }
+);
 
 </script>
