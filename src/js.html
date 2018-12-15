@@ -14,16 +14,16 @@ function selectTab(event, tabName)
   var tabcontent = document.getElementsByClassName("tabcontent");
   for(var i = 0; i < tabcontent.length; ++i)
     tabcontent[i].style.display = "none";
-  
+
   // Deactivate the tab lists.
   var tablinks = document.getElementsByClassName("tablinks");
   for(var i = 0; i < tablinks.length; ++i)
     tablinks[i].className = tablinks[i].className.replace(" active", "");
-  
+
   // Activate the desired tab and update its tab status.
   document.getElementById(tabName).style.display = "block";
   event.currentTarget.className += " active";
-  
+
   // Autofocus the tab's list input element.
   if(tabName == 'Welcome')
     return;
@@ -49,7 +49,7 @@ function hideAllTables(error)
   }
 }
 
-var lootWrapper, locationWrapper;    
+var lootWrapper, locationWrapper;
 function showLootTable(input)
 {
   // Ensure the desired table is displayed immediately (i.e. loading GIF).
@@ -63,7 +63,7 @@ function showLootTable(input)
     chartType:'Table',
     dataTable:td,
   });
-  
+
   lootWrapper.draw();
 }
 function showLocationTable(input)
@@ -79,7 +79,7 @@ function showLocationTable(input)
     chartType:'Table',
     dataTable:td,
   });
-  
+
   locationWrapper.draw();
 }
 
@@ -167,7 +167,7 @@ function makeTableData(json)
   result.addColumn({type: 'number', label: 'Times Seen', pattern: '#,##0'});
   result.addColumn({type: 'number', label: 'Chance (%)'});
   result.addColumn({type: 'number', label: 'Uncertainty (%)'});
-  
+
   // i = Location or Quality.
   var rarityLabels = {"Common":"1. Common", "Valuable":"2. Valuable",
                       "Exceptional":"3. Exceptional", "Hat":"4. Hat"};
@@ -184,7 +184,7 @@ function makeTableData(json)
                      item.percent * 1,
                      item.error * 1]);
     }
-  
+
   return result;
 }
 
@@ -192,7 +192,7 @@ function makeTableData(json)
 /**
  * parseLoot                 function that parses the loot JSON into a DataTable
  * @param Object json        A JSON-formatted object with keys location and rarities, that allow the user
- *                           to easily view both the rarities this item is found at 
+ *                           to easily view both the rarities this item is found at
  */
 
 // Use Google Charts to build a TableChart with the data, to offload the sorting task.
@@ -203,11 +203,11 @@ google.charts.setOnLoadCallback(function()
     google.script.run.withSuccessHandler(dataLoadedOK)
                      .withFailureHandler(dataNotLoadedOK)
                      .getLocationsList();
-    
+
     google.script.run.withSuccessHandler(dataLoadedOK)
                      .withFailureHandler(dataNotLoadedOK)
                      .getLootList();
-    
+
     // Open the "Welcome" tab by default.
     document.getElementById("onOpen").click();
   }
@@ -228,7 +228,10 @@ document.getElementById('locationPicker').addEventListener("focus", doSelectText
 function dataNotLoadedOK(e)
 {
   console.log(e);
-  document.getElementById("Welcome").innerHTML = "<p>An error occurred while fetching data.<br>Please reload the page to try again.</p>";
+  let text = "<p>An error occurred while fetching data.<br>Please reload the page to try again.</p>";
+  text += "<p>Note (Dec 2018):<br>If HornTracker is currently unavailable, this tool will not function properly. In the future, obtaining data from other sources may be implemented.";
+  text += "<br>Thanks for your interest in this tool!</p>"
+  document.getElementById("Welcome").innerHTML = text;
   document.getElementById("onOpen").click();
 }
 
@@ -286,11 +289,11 @@ function array2DataList(options)
 {
   if(!options.length)
     return "";
-  
+
   var dataList = String();
   for(var i = 0; i < options.length; ++i)
     dataList += '<option value="' + options[i] + '"/>';
-  
+
   return dataList;
 }
 
