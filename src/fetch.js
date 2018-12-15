@@ -4,14 +4,55 @@ var ssid = '1fN6J_d-3DAkuFys5gOY6GhE-7vHQOgtN0RDeop5exSU';
 var dbSheetName = 'db';
 var labels = { "Common": "1. Common", "Valuable": "2. Valuable", "Exceptional": "3. Exceptional", "Hat": "4. Hat" };
 
+/**
+ * Get a reference to the database sheet on which information is logged.
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Spreadsheet} wb The container in which the database sheet should live
+ * @param {string} name The expected name of the database sheet.
+ * @returns {GoogleAppsScript.Spreadsheet.Sheet} The database sheet, which may have been just created and initialized.
+ */
+function _getDbSheet_(wb, name)
+{
+  var sheet = wb.getSheetByName(name);
+  if (!sheet)
+  {
+    console.log('Creating the database sheet named \'' + name + '\'');
+    sheet = wb.insertSheet(name);
+    _initDbSheet_(sheet);
+  }
+  return sheet;
+}
+/**
+ * Initialize the given sheet as a database sheet.
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
+ */
+function _initDbSheet_(sheet)
+{
+  // Remove any pre-existing formatting or data.
+  sheet.clear();
+  SpreadsheetApp.flush();
+
+  // Create the header row, and make it somewhat visually appealing.
+  const headers = [
+    ['Location', 'Slot', 'Item', 'Times Received', 'Quantity Received', 'Chance to Receive (%)', 'Uncertainty (%err)']
+  ];
+  sheet.getRange(1, 1, headers.length, headers[0].length)
+    .setValues(headers)
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center')
+    .setVerticalAlignment('middle');
+  resizeAllColumns_(sheet);
+}
+
 
 // Store data to the worksheet.
 function writeData()
 {
-  var ss = SpreadsheetApp.openById(ssid);
-  var sheet = ss.getSheetByName(dbSheetName);
-  var data = fetchData();
-  var output = [];
+  const ss = SpreadsheetApp.openById(ssid);
+  const sheet = _getDbSheet_(ss, dbSheetName);
+  const data = fetchData();
+  const output = [];
   for (var location in data)
   {
     var locationData = data[location];
@@ -21,14 +62,6 @@ function writeData()
         var loot = locationData[rarity][item];
         output.push([location, labels[rarity] || rarity, item, loot.seen, loot.quant, loot.percent * .01, loot.error * .01]);
       }
-  }
-  // Create (and activate) the desired sheet if it does not exist.
-  if (!sheet)
-  {
-    sheet = ss.insertSheet(dbSheetName);
-    sheet.appendRow(['Location', 'Slot', 'Item', 'Times Received', 'Quantity Received', 'Chance to Receive (%)', 'Uncertainty (%err)']);
-    sheet.getDataRange().setFontWeight('bold').setHorizontalAlignment('center').setVerticalAlignment('middle');
-    resizeAllColumns_(sheet);
   }
   // Write the loot data to the database spreadsheet.
   if (output.length && output[0].length)
