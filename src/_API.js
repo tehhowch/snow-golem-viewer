@@ -1,7 +1,7 @@
 /**
  * Query the Horntracker API with the given JSON argument
  *
- * @param {Object.<string, string>} payload A JSON object suitable to serve as a UrlFetchApp POST payload
+ * @param {string} payload A stringified JSON object suitable to serve as a UrlFetchApp POST payload
  * @returns {Object.<string, any>|null} If there was no issue with the query (or HornTracker), returns the parsed JSON data. Otherwise, returns `null`
  */
 function readAPI_(payload)
@@ -11,7 +11,7 @@ function readAPI_(payload)
     return null;
 
   // Formulate the request.
-  const rq = UrlFetchApp.getRequest(url, { 'method': 'POST', 'payload': payload });
+  const rq = UrlFetchApp.getRequest(url, { 'method': 'post', 'payload': payload });
   try { var resp = UrlFetchApp.fetchAll([rq])[0]; }
   catch (fetchError)
   {

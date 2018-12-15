@@ -79,7 +79,7 @@ function writeData()
 /**
  * Obtain Snow Golem data from either cache or the HornTracker backend function.
  *
- * @param {string} query  The desired cache key to return data for (a location or loot name).
+ * @param {string} [query]  The desired cache key to return data for (a location or loot name).
  * @returns {Object.<string, any>} An object, containing either Golem Loot associated with the given query
  *                             (if a query was specified), or each location and its Golem Loot object.
  */

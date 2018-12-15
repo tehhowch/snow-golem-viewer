@@ -22,6 +22,8 @@ function getLocationsList()
   const locations = getCachedList_('locationList', 'locations', true);
   if (!locations)
     throw new Error('Unable to read list of locations.');
+  else
+    return locations;
 }
 
 /**
@@ -33,6 +35,8 @@ function getLootList()
   const loot = getCachedList_('lootList', 'lootNames', true);
   if (!loot)
     throw new Error('Unable to read list of loot.');
+  else
+    return loot;
 }
 
 /**
