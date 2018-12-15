@@ -1,9 +1,9 @@
 /**
- * function doGet     Runs when the script app link is clicked
- * @param {Object} e  Object containing various properties. Each link will have at least one parameter labeled uid
- *                    which is stored in e.parameter
+ * Display the web application to the requesting client.
+ *
+ * @param {Object.<string, any>} e Object containing various properties, namely:
  *                    {parameter={}, contextPath=, contentLength=-1, queryString=null, parameters={[]}}
- * @return {webpage}  Returns a webpage described by assembling the various .html files
+ * @returns {GoogleAppsScript.HTML.HtmlOutput} Returns a webpage described by assembling the various .html files
  */
 function doGet(e)
 {
@@ -12,57 +12,58 @@ function doGet(e)
   return pg.evaluate().setTitle('GWH2017 Snow Golem Loot').setFaviconUrl('https://i.imgur.com/ELxTnT2.gif');
 }
 
-/**
- * function getLocationsList      Returns an array of the available locations.
- * @param Boolean tryAgain        Flag indicating if the cache missed and this is the 2nd call.
- * @return String[]
- */
-function getLocationsList(tryAgain)
-{
-  if (tryAgain == undefined)
-    tryAgain = true;
 
-  // Fetch the cached data.
-  var locations = scache.get("locations") || [];
-  // Trigger an update if there is no valid cached data.
-  if (!locations.length && tryAgain)
-  {
-    fetchData();
-    Utilities.sleep(5000);
-    return getLocationsList(false);
-  }
-  else if (locations.length)
-    return { id: 'locationList', data: JSON.parse(locations) };
-  else
+/**
+ * Read the available locations from cache. Will attempt to recache on miss.
+ * @returns {CacheList} The known Snow Golem locations (which are also cache keys).
+ */
+function getLocationsList()
+{
+  const locations = getCachedList_('locationList', 'locations', true);
+  if (!locations)
     throw new Error('Unable to read list of locations.');
 }
 
-
+/**
+ * Read the available locations from cache. Will attempt to recache on miss.
+ * @returns {CacheList} The known Snow Golem loots (which are also cache keys).
+ */
+function getLootList()
+{
+  const loot = getCachedList_('lootList', 'lootNames', true);
+  if (!loot)
+    throw new Error('Unable to read list of loot.');
+}
 
 /**
- * function getLootList         Returns an array of the available loot.
- * @param Boolean tryAgain      Flag indicating if the cache missed and this is the 2nd call.
- * @return String[]
+ * Read the available key from cache. Will attempt to recache all keys on miss.
+ *
+ * @param {string} elemId The HTMLElement ID associated with the request, e.g. 'lootList' or 'locationList'
+ * @param {string} key The key for which data should be found in cache.
+ * @param {boolean} tryAgain True if we allow Apps Script to requery and recache the data.
+ * @returns {CacheList} The cached data for the given key.
  */
-function getLootList(tryAgain)
+function getCachedList_(elemId, key, tryAgain)
 {
-  if (tryAgain == undefined)
+  if (tryAgain !== false)
     tryAgain = true;
 
-  // Fetch the cached data.
-  var loot = scache.get("lootNames") || [];
-  // Trigger an update if there is no valid cached data.
-  if (!loot.length && tryAgain)
+  const data = scache.get(key);
+  if (!data && tryAgain)
   {
     fetchData();
     Utilities.sleep(5000);
-    return getLootList(false);
+    return getCachedList_(elemId, key, false);
   }
-  else if (loot.length)
-    return { id: 'lootList', data: JSON.parse(loot) };
+  else if (data)
+    return { 'id': elemId, 'data': JSON.parse(data) };
   else
-    throw new Error('Unable to read list of loot.');
+    return null;
 }
+/** @typedef {Object} CacheList
+ * @property {string} id The kind of data in cache.
+ * @property {Array} data An array of the cached data (as parsed from JSON)
+ */
 
 /**
  * itemTracker
