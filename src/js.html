@@ -93,37 +93,40 @@ function showLocationTable(input)
 function getTableData(event)
 {
   let isChoice = false;
+  const value = event.target.value;
   switch(event.type)
   {
     case "deleteContentBackward":
     case "deleteContentForward":
     case "insertText":
     case "input":
-      isChoice = isValidChoice(String(event.target.value), event.target.list.childNodes);
+      isChoice = isValidChoice(value, event.target.list.childNodes);
       break;
     default:
       console.log(event.type);
   }
-  if(isChoice && event.target.name === "loot")
+  if (isChoice)
   {
-    google.script.run.withSuccessHandler(showLootTable)
-                     .withFailureHandler(hideAllTables)
-                     .fetchData(event.target.value);
-    google.script.run.itemTracker({type: 'loot', value: String(event.target.value)});
-  }
-  else if(isChoice && event.target.name == "location")
-  {
-    google.script.run.withSuccessHandler(showLocationTable)
-                     .withFailureHandler(hideAllTables)
-                     .fetchData(event.target.value);
-    google.script.run.itemTracker({type: 'location', value: String(event.target.value)});
-  }
-  else if(isChoice)
-    console.log('Matched valid choice but unable to handle target name.');
+    if (event.target.name === 'loot')
+    {
+      google.script.run.withSuccessHandler(showLootTable)
+                       .withFailureHandler(hideAllTables)
+                       .fetchData(value);
+      google.script.run.itemTracker({type: 'loot', value: value});
+    }
+    else if (event.target.name === 'location')
+    {
+      google.script.run.withSuccessHandler(showLocationTable)
+                       .withFailureHandler(hideAllTables)
+                       .fetchData(value);
+      google.script.run.itemTracker({type: 'location', value: value});
+    }
+    else
+      console.log('Matched valid choice but unable to handle target name.');
 
-  // Defocus the picker after choosing a valid option.
-  if(isChoice)
+    // Defocus the picker after choosing a valid option.
     event.target.blur();
+  }
 }
 
 
@@ -223,7 +226,7 @@ document.getElementById('locationPicker').addEventListener("focus", doSelectText
 function dataNotLoadedOK(err)
 {
   // TODO: Load from spreadsheet instead of just saying "bye"
-  let text = "<p>An error occurred while fetching data.<br>Please reload the page to try again.</p>";
+  let text = "<p>An error occurred while fetching available filter options.<br>Please reload the page to try again.</p>";
   text += "<p>Note (Dec 2018):<br>If HornTracker is currently unavailable, this tool will not function properly. In the future, obtaining data from other sources may be implemented.";
   text += "<br>Thanks for your interest in this tool!</p>"
   document.getElementById("Welcome").innerHTML = text;
@@ -232,10 +235,11 @@ function dataNotLoadedOK(err)
 
 /**
  * Provide dynamically filled options to the loot and location pickers by populating the relevant datalist.
- * @param {CacheList} input         An object containing both the DOM id and a String[] of options.
+ * @param {CacheList} input         An object containing both the DOM id and a string[] of options.
  */
 function dataLoadedOK(input)
 {
+  // The received loot or locations should be ordered alphabetically.
   input.data.sort();
   document.getElementById(input.id).innerHTML = array2DataList(input.data);
   // Remove the loading text once the options have loaded.
@@ -250,6 +254,11 @@ function dataLoadedOK(input)
 
 
 // Compares a value with a datalist's nodes to determine if it matches one exactly.
+/**
+ * @param {string} value The current text in an input control
+ * @param {nodelist} nodelist Valid choices for the associated input control
+ * @returns {boolean} whether the current text is an exact valid choice for this input control.
+ */
 function isValidChoice(value, nodelist)
 {
   const set = new Set();
