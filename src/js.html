@@ -2,7 +2,7 @@
 <script type="text/javascript" src="https://rawgit.com/mfranzke/datalist-polyfill/5844fe94c9557e19ad9102b43b1db031799d87ae/datalist-polyfill.min.js"></script>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script type="text/javascript">
-
+const STR_ARR_JOIN = '/%!/';
 /**
  * Display only the clicked tab.
  * @param {Event} event  The click event that called this function
@@ -197,6 +197,16 @@ google.charts.setOnLoadCallback(function ()
     // Request updated labels from Apps Script.
     getLatestLabels();
 
+    // Attempt to populate immediately, based on session storage.
+    ['loot', 'location'].forEach(function (id) {
+      let lastValues = window.sessionStorage.getItem(id);
+      if (lastValues)
+      {
+        console.log('Found existing stored values for id="' + id + '".', lastValues);
+        document.getElementById(id).innerHTML = array2DataList(lastValues.split(STR_ARR_JOIN));
+      }
+    });
+
     // Open the "Welcome" tab by default.
     document.getElementById("onOpen").click();
   }
@@ -250,14 +260,25 @@ function dataLoadedOK(input)
 {
   // The received loot or locations should be ordered alphabetically.
   input.data.sort();
+
+  // Store this most recent data in case the page is reloaded.
+  window.sessionStorage.setItem(input.id, input.data.join(STR_ARR_JOIN));
+
   document.getElementById(input.id).innerHTML = array2DataList(input.data);
   // Remove the loading text once the options have loaded.
-  try { document.getElementById(input.id + 'Loading').remove(); }
-  catch(e)
+  let element = document.getElementById(input.id + 'Loading');
+  if (element)
   {
-    // Remove is not supported in IE or Opera Mini, so clear its HTML instead.
-    document.getElementById(input.id + 'Loading').innerHTML = '';
+    try { document.getElementById(input.id + 'Loading').remove(); }
+    catch(e)
+    {
+      // Remove is not supported in IE or Opera Mini, so clear its HTML instead.
+      document.getElementById(input.id + 'Loading').innerHTML = '';
+    }
   }
+
+  // Schedule the options to be refreshed again in 15 minutes.
+  setTimeout(getLatestLabels, 15 * 60 * 1000);
 }
 
 
