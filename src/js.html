@@ -194,19 +194,14 @@ function makeTableData(json)
 google.charts.load('current', {packages:['table']});
 google.charts.setOnLoadCallback(function ()
   {
-    // Async loading of location and loot lists (from cache, or from HornTracker.
-    google.script.run.withSuccessHandler(dataLoadedOK)
-                     .withFailureHandler(dataNotLoadedOK)
-                     .getLocationsList();
-
-    google.script.run.withSuccessHandler(dataLoadedOK)
-                     .withFailureHandler(dataNotLoadedOK)
-                     .getLootList();
+    // Request updated labels from Apps Script.
+    getLatestLabels();
 
     // Open the "Welcome" tab by default.
     document.getElementById("onOpen").click();
   }
 );
+
 // Attach event handlers to the locationPicker and lootPicker input controls.
 // "input" fires for selection events and the user typing. The input controls
 // have type = search, so that the user can easily clear their text filter to
@@ -217,6 +212,20 @@ document.getElementById('locationPicker').addEventListener("input", getTableData
 // and thus make it simple to remove all text in the control.
 document.getElementById('lootPicker').addEventListener("focus", doSelectText, true);
 document.getElementById('locationPicker').addEventListener("focus", doSelectText, true);
+
+
+/**
+ * Query the Apps Script page host for the most up-to-date location.
+ */
+ function getLatestLabels()
+{
+  // Async loading of location and loot lists (from cache, or from HornTracker).
+  const loadTask = google.script.run
+      .withSuccessHandler(dataLoadedOK)
+      .withFailureHandler(dataNotLoadedOK);
+  loadTask.getLocationsList();
+  loadTask.getLootList();
+}
 
 
 /**
