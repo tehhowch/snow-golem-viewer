@@ -206,12 +206,12 @@ google.charts.setOnLoadCallback(function ()
 // "input" fires for selection events and the user typing. The input controls
 // have type = search, so that the user can easily clear their text filter to
 // access the full range of options.
-document.getElementById('lootPicker').addEventListener("input", getTableData, true);
-document.getElementById('locationPicker').addEventListener("input", getTableData, true);
-// If the user selects the picker input controls, use a handler to activate their "select" method
-// and thus make it simple to remove all text in the control.
-document.getElementById('lootPicker').addEventListener("focus", doSelectText, true);
-document.getElementById('locationPicker').addEventListener("focus", doSelectText, true);
+['lootPicker', 'locationPicker'].forEach(function (id) {
+  let element = document.getElementById(id);
+  element.addEventListener('input', getTableData, true);
+  // When the input control is selected, highlight all text to simplify clearing its value.
+  element.addEventListener('focus', doSelectText, true);
+});
 
 
 /**
