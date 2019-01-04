@@ -98,18 +98,18 @@ function fetchData(query)
   }
 
   // Obtain new data.
-  const newData = getSnowGolemData_();
+  const newData = getSnowGolemDataFromHT_() || getSnowGolemDataFromSpreadsheet_();
   if (!newData)
   {
-    console.error({ 'message': 'Parse error when obtaining new Snow Golem data', 'new data': newData });
+    console.warn('Unable to obtain Snow Golem data');
     return undefined;
   }
 
-  // Cache this object for 150 minutes.
+  // Cache the data object for 15 minutes.
   try
   {
-    storeData_(newData, 60 * 150);
-    storeLootData_(newData, 60 * 150);
+    storeData_(newData, 60 * 15);
+    storeLootData_(newData, 60 * 15);
   }
   catch (cacheError)
   {
@@ -226,8 +226,40 @@ function storeLootData_(data, duration)
  * @return {Object.<string, any>} A JSON object with the contents of all logged Snow Golems.
  *                   {"snowman": { "Location 1" : { "Item Quality 1" : { "Item 1" : ItemData }}}}
  */
-function getSnowGolemData_()
+function getSnowGolemDataFromHT_()
 {
   const f = "getSnowmanData";
   return readAPI_(JSON.stringify({ 'f': f }));
+}
+
+
+function getSnowGolemDataFromSpreadsheet_()
+{
+  const labelReverser = Object.keys(labels).reduce(function (acc, label) {
+    acc[labels[label]] = label;
+    return acc;
+  }, {});
+  const sheet = _getDbSheet_(SpreadsheetApp.openById(ssid), dbSheetName);
+  /** @type {Array[]} */
+  const savedData = sheet.getSheetValues(2, 1, sheet.getLastRow(), sheet.getLastColumn());
+
+  // Reconstruct the object from the serialized array.
+  const output = {};
+  savedData.filter(function (row) { return row[0]; }).forEach(function (row) {
+    var location = row[0];
+    if (!output.hasOwnProperty(location))
+      output[location] = {};
+    var rarity = labelReverser[row[1]];
+    if (!output[location].hasOwnProperty(rarity))
+      output[location][rarity] = {};
+    var item = row[2];
+    // There should only be a single instance of an item for a given location and rarity.
+    output[location][rarity][item] = {
+      'seen': row[3].toString(),
+      'quant': row[4].toString(),
+      'percent': (row[5] * 100).toString().substring(0, 5),
+      'error': (row[6] * 100).toString().substring(0, 5)
+    };
+  });
+  return { 'snowman': output };
 }

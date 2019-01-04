@@ -19,8 +19,12 @@ function readAPI_(payload)
     return null;
   }
 
-  // If the server indicated an issue, don't try to parse the (likely invalid) data.
-  if (!resp || resp.getResponseCode() !== 200 || resp.getContentText().toLowerCase().indexOf('connect to'))
+  if (!resp)
+    return null;
+
+  const content = resp.getContentText();
+  const htErrors = ['connect to mysql', 'unexpected error'];
+  if (htErrors.some(function (fragment) { return content.indexOf(fragment) !== -1; }))
   {
     console.warn({ 'message': 'HornTracker server replied with bad data', 'request': rq, 'response': resp });
     return null;
@@ -30,7 +34,7 @@ function readAPI_(payload)
   try { return JSON.parse(resp.getContentText()); }
   catch (parseError)
   {
-    console.warn({ 'message': 'Received data was not JSON', 'request': rq, 'response': resp });
+    console.warn({ 'message': 'Received data was not JSON', 'request': rq, 'response': resp, 'status': resp.getResponseCode() });
     return null;
   }
 }

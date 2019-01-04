@@ -180,8 +180,8 @@ function makeTableData(json)
       // Attempt to coerce a numerical sort to the rarity categories.
       result.addRow([rarityLabels[i] ? {v: rarityLabels[i], f: i} : i,
                      rarityLabels[j] ? {v: rarityLabels[j], f: j} : j,
-                     item.quant,
-                     item.seen,
+                     item.quant * 1,
+                     item.seen * 1,
                      item.percent * 1,
                      item.error * 1]);
     }
@@ -198,11 +198,10 @@ google.charts.setOnLoadCallback(function ()
     getLatestLabels();
 
     // Attempt to populate immediately, based on session storage.
-    ['loot', 'location'].forEach(function (id) {
+    ['lootList', 'locationList'].forEach(function (id) {
       let lastValues = window.sessionStorage.getItem(id);
       if (lastValues)
       {
-        console.log('Found existing stored values for id="' + id + '".', lastValues);
         document.getElementById(id).innerHTML = array2DataList(lastValues.split(STR_ARR_JOIN));
       }
     });
@@ -230,6 +229,7 @@ google.charts.setOnLoadCallback(function ()
  function getLatestLabels()
 {
   // Async loading of location and loot lists (from cache, or from HornTracker).
+  console.log('querying labels');
   const loadTask = google.script.run
       .withSuccessHandler(dataLoadedOK)
       .withFailureHandler(dataNotLoadedOK);

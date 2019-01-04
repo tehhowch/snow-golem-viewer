@@ -70,7 +70,8 @@ function getCachedList_(elemId, key, tryAgain)
  */
 
 /**
- * itemTracker
+ * Anonymously log the queried areas / items
+ * @param {{type: string, value: string}} selection The text given to the associated input control
  */
 function itemTracker(selection)
 {
