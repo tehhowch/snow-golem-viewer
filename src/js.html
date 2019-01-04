@@ -100,7 +100,7 @@ function getTableData(event)
     case "deleteContentForward":
     case "insertText":
     case "input":
-      isChoice = isValidChoice(value, event.target.list.childNodes);
+      isChoice = isValidChoice(value, event.target.list);
       break;
     default:
       console.log(event.type);
@@ -290,19 +290,35 @@ function dataLoadedOK(input)
 // Compares a value with a datalist's nodes to determine if it matches one exactly.
 /**
  * @param {string} value The current text in an input control
- * @param {nodelist} nodelist Valid choices for the associated input control
+ * @param {HTMLDataListElement} datalist Valid choices for the associated input control
  * @returns {boolean} whether the current text is an exact valid choice for this input control.
  */
-function isValidChoice(value, nodelist)
+function isValidChoice(value, datalist)
 {
-  const set = new Set();
-  try { nodelist.forEach(function(node){ set.add(node.value) }); }
+  const setKey = '__' + datalist.id;
+  let set = this[setKey];
+  if (set instanceof Set)
+    return set.has(value);
+
+  try
+  {
+    set = new Set();
+    Array.prototype.forEach.call(datalist.childNodes, function (node) {
+      set.add(node.value);
+    });
+  }
   catch(e)
   {
+    console.log('Fallback set construction');
+    set = new Set();
+    let nodes = datalist.childNodes;
     // Internet Explorer has no support for nodeList.forEach, so go through old-school.
-    for(let i = 0; i < nodelist.length; ++i)
-      set.add(nodelist.item(i).value);
+    for(let i = 0; i < nodes.length; ++i)
+      set.add(nodes.item(i).value);
   }
+  // Store this set for repeated calls, but remove it after 5 minutes.
+  this[setKey] = set;
+  setTimeout(function () { this[setKey] = undefined; }, 5 * 60 * 1000);
   return set.has(value);
 }
 
