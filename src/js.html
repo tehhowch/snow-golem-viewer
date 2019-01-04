@@ -229,12 +229,15 @@ google.charts.setOnLoadCallback(function ()
  function getLatestLabels()
 {
   // Async loading of location and loot lists (from cache, or from HornTracker).
-  console.log('querying labels');
   const loadTask = google.script.run
       .withSuccessHandler(dataLoadedOK)
       .withFailureHandler(dataNotLoadedOK);
   loadTask.getLocationsList();
   loadTask.getLootList();
+
+  if (this._labelQuery)
+    clearTimeout(this._labelQuery);
+  this._labelQuery = undefined;
 }
 
 
@@ -277,8 +280,9 @@ function dataLoadedOK(input)
     }
   }
 
-  // Schedule the options to be refreshed again in 15 minutes.
-  setTimeout(getLatestLabels, 15 * 60 * 1000);
+  // Schedule the options to be refreshed again in 60 minutes.
+  if (!this._labelQuery)
+    this._labelQuery = setTimeout(getLatestLabels, 60 * 60 * 1000);
 }
 
 
