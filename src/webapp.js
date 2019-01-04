@@ -56,7 +56,6 @@ function getCachedList_(elemId, key, tryAgain)
   if (!data && tryAgain)
   {
     fetchData();
-    Utilities.sleep(5000);
     return getCachedList_(elemId, key, false);
   }
   else if (data)
